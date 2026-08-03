@@ -6,7 +6,7 @@ of [osgHimmel](https://github.com/cgcostume/osghimmel), reimplemented as
 WebGPU compute shaders writing directly to storage textures rather than
 the original's OpenGL FBO-ping-pong-through-fragment-shaders approach.
 
-Takes a sun/moon direction vector and time as plain inputs — no hard
+Takes a sun/moon direction vector and time as plain inputs, no hard
 dependency on [`@himmel/sternzeit`](https://github.com/cgcostume/himmel-sternzeit)
 or any other `@himmel/*` package, so it drops into any existing WebGPU
 renderer.
