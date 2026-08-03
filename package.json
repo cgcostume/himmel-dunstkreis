@@ -1,0 +1,43 @@
+{
+  "name": "@himmel/dunstkreis",
+  "version": "0.1.0",
+  "description": "WebGPU compute-based atmospheric scattering (Bruneton precomputed model) for sky rendering — a TypeScript port of osgHimmel's atmosphere rendering.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Daniel Limberger <cgdaniel@outlook.com> (https://github.com/cgcostume)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cgcostume/himmel-dunstkreis.git"
+  },
+  "keywords": [
+    "atmosphere",
+    "atmospheric-scattering",
+    "bruneton",
+    "sky-rendering",
+    "webgpu",
+    "compute-shader"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rolldown -c rolldown.config.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@webgpu/types": "^0.1.71",
+    "rolldown": "^1.2.2",
+    "rolldown-plugin-dts": "^0.28.0",
+    "typescript": "^7.0.2"
+  }
+}
