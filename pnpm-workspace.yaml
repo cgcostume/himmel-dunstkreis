@@ -1,3 +1,6 @@
+# Dawn-backed WebGPU for node, used by the GPU tests; its install script fetches the binding.
+allowBuilds:
+  webgpu: true
 minimumReleaseAgeExclude:
   - '@rolldown/binding-android-arm64@1.2.2'
   - '@rolldown/binding-darwin-arm64@1.2.2'
