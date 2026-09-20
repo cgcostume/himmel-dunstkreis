@@ -1,0 +1,265 @@
+/* Shares its visual language with @himmel/sternzeit's page deliberately: same tokens, typography, centered
+   column width and input grid, so the family reads as one thing. Kept in sync by hand, as the repos are
+   independent and there is no shared package. */
+
+:root {
+    color-scheme: light;
+    --accent: #007fff;
+}
+body {
+    font-family: "Roboto", sans-serif;
+    font-size: 1rem;
+    font-weight: 300;
+    line-height: 1.7;
+    margin: 0;
+    background: #fff;
+    color: #111;
+}
+h1 {
+    font-family: "Roboto Mono", ui-monospace, monospace;
+    font-size: 1.1rem;
+    font-weight: 400;
+}
+h2 {
+    font-size: 1rem;
+    margin-top: 2rem;
+    font-weight: 400;
+}
+strong,
+b {
+    color: var(--accent);
+}
+a {
+    color: var(--accent);
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+/* Reusable footnote scale: attributions, fine print, anything meant to read as an aside rather than body text. */
+.footnote {
+    font-size: 0.75em;
+}
+code,
+pre,
+input,
+button,
+select {
+    font-family: "Roboto Mono", ui-monospace, monospace;
+    font-size: 85%;
+}
+code,
+pre {
+    background: #fafafa;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    padding: 0.15rem 0.4rem;
+    color: var(--accent);
+}
+code {
+    user-select: all;
+}
+input,
+button,
+select {
+    line-height: 1.4;
+    box-sizing: border-box;
+    height: 1.65rem;
+    background: #fff;
+    color: #111;
+    border: 1px solid #999;
+    border-radius: 4px;
+    padding: 0.15rem 0.4rem;
+}
+input[type="checkbox"],
+input[type="range"] {
+    height: auto;
+    padding: 0;
+    border: none;
+    accent-color: var(--accent);
+}
+
+/* Bootstrap's 12-column lg container width, the same centered column sternzeit's page uses. */
+.page {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem 2rem;
+}
+
+/* The sky preview pins to the top of the viewport as you scroll, so a parameter's effect stays visible at the
+   moment it changes rather than a scroll away. Full bleed, like sternzeit's schematic, ending at the
+   splitter: grey (#ccc), a plain separator rather than something meant to draw attention. */
+.sticky-sky {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #fff;
+    border-bottom: 1px solid #ccc;
+}
+#sky {
+    position: relative;
+    height: 55vh;
+    min-height: 320px;
+    background: #111;
+    overflow: hidden;
+}
+#sky canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+}
+#sky canvas:active {
+    cursor: grabbing;
+}
+/* The title sits over the canvas rather than on the page, so it carries its own contrast. */
+.title-row {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    pointer-events: none;
+}
+.title-row.over-sky h1,
+.title-row.over-sky strong,
+.title-row.over-sky a {
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+.title-row a {
+    pointer-events: auto;
+}
+.sky-status {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    padding: 0.5rem 1.5rem;
+    margin: 0;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+    pointer-events: none;
+}
+.sky-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 2rem;
+    color: #fff;
+    text-align: center;
+}
+.sky-error a {
+    color: #6cf;
+}
+
+/* Lead paragraph: what the library is for, before any detail about this page. */
+.lead {
+    font-size: 1.15rem;
+    line-height: 1.6;
+    margin: 0 0 1rem;
+}
+
+.input-grid {
+    display: grid;
+    grid-template-columns: auto auto auto 1fr;
+    gap: 0.5rem 0.75rem;
+    align-items: baseline;
+    margin-bottom: 1rem;
+}
+.input-grid-extra {
+    display: flex;
+    gap: 0.75rem;
+    align-items: baseline;
+    flex-wrap: wrap;
+}
+.input-grid-extra label {
+    display: flex;
+    gap: 0.35rem;
+    align-items: center;
+}
+.input-grid-subrow {
+    grid-column: 2 / -1;
+    display: flex;
+    gap: 0.75rem;
+    align-items: baseline;
+    flex-wrap: wrap;
+}
+input.latlong {
+    width: 17ch;
+}
+
+/* Two columns of sliders on a wide screen, one on a narrow one. */
+.controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 0 2.5rem;
+}
+.slider-grid {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 0.5rem 0.75rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+.slider-grid output {
+    font-family: "Roboto Mono", ui-monospace, monospace;
+    font-size: 0.85rem;
+    color: #666;
+    min-width: 7ch;
+    text-align: right;
+}
+.slider-grid input[type="range"] {
+    width: 100%;
+}
+.slider-grid button {
+    margin-right: 0.4rem;
+}
+
+/* The precomputed tables, at their own aspect ratio and downloadable: they are the artifacts this library
+   actually produces, and are worth looking at directly. */
+.luts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin: 1rem 0 2rem;
+}
+.lut h3 {
+    font-family: "Roboto Mono", ui-monospace, monospace;
+    font-size: 0.9rem;
+    font-weight: 400;
+    margin: 0 0 0.35rem;
+    color: var(--accent);
+}
+.lut > canvas.lut-canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    /* These are small tables read texel by texel, so smoothing them would hide what they actually contain. */
+    image-rendering: pixelated;
+    border: 1px solid #ccc;
+    background: #fafafa;
+}
+.lut p {
+    margin: 0.4rem 0 0;
+    color: #444;
+}
+
+.family {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #ccc;
+    color: #666;
+}
+.family ul {
+    margin: 0.5rem 0;
+    padding-left: 1.2rem;
+}
+.planned {
+    color: #999;
+    font-style: italic;
+}

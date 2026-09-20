@@ -35,11 +35,12 @@
     ],
     "scripts": {
         "build": "rolldown -c rolldown.config.ts",
+        "build:page": "rolldown -c rolldown.page.config.ts",
         "clean": "rm -rf dist",
-        "start": "sirv . --port 4173 --dev",
+        "start": "pnpm build:page && sirv . --port 4173 --dev",
         "typecheck": "tsc --noEmit",
-        "test": "playwright test",
-        "test:gpu": "DUNSTKREIS_GPU=1 playwright test",
+        "test": "pnpm build && playwright test",
+        "test:gpu": "pnpm build && DUNSTKREIS_GPU=1 playwright test",
         "format": "biome format --write .",
         "lint": "biome check ."
     },

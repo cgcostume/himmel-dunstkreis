@@ -46,6 +46,14 @@ export function gpuDevice(): Promise<GPUDevice | null> {
     return devicePromise;
 }
 
+/** Compiles `code` and returns its error messages, empty when it compiled cleanly. */
+export async function compileWgsl(device: GPUDevice, code: string): Promise<string[]> {
+    const module = device.createShaderModule({ code });
+    const info = await module.getCompilationInfo();
+
+    return info.messages.filter((m) => m.type === "error").map((m) => `${m.lineNum}: ${m.message}`);
+}
+
 /**
  * Compiles `source` plus a generated entry point that evaluates `expression` once per input, and returns the
  * results. `expression` sees the input as `input`, a `vec4f`, and must evaluate to a `vec4f`.

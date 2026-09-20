@@ -7,6 +7,7 @@
 // assumption) where Bruneton's is a fixed number of orders. It is much cheaper to precompute and lower
 // resolution, so "fast vs. precise" holds overall, but it will not always look worse.
 //
-// The pipeline (transmittance, multi-scattering and sky-view LUTs) is not implemented yet.
 
+export type { HillaireLUTs, PrecomputeOptions, SkyPassOptions } from "./hillaire.js";
+export { createSkyPassApprox, precomputeAtmosphereApprox } from "./hillaire.js";
 export * from "./index.js";

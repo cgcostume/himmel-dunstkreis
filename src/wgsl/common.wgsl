@@ -26,16 +26,27 @@ fn dkIntersectsGround(a: DkAtmosphere, r: f32, mu: f32) -> bool {
     return mu < 0.0 && r * r * (mu * mu - 1.0) + a.Rg * a.Rg >= 0.0;
 }
 
+// Distance from a point at radius r to the horizon, i.e. sqrt(r^2 - Rg^2).
+//
+// Factored as (r - Rg)(r + Rg) rather than the textbook difference of squares. At f32, Rg^2 is far past the
+// 24-bit mantissa, so the textbook form subtracts two nearly equal rounded numbers and the sqrt amplifies
+// what is left: near the ground it returns garbage on the order of 1e-4 instead of 0, exactly where the
+// sky's gradient is steepest and the LUT mappings spend their resolution. Factoring keeps the small quantity
+// (the altitude) exact. Every radius-difference in this package is written this way for the same reason.
+fn dkRho(a: DkAtmosphere, r: f32) -> f32 {
+    return sqrt(max(r - a.Rg, 0.0) * (r + a.Rg));
+}
+
+// Distance from the ground to the top of the atmosphere along a horizontal ray, sqrt(Rt^2 - Rg^2). The
+// furthest any ray can travel through the shell, and the normalizing constant of the LUT mappings.
+fn dkHorizonDistanceAtTop(a: DkAtmosphere) -> f32 {
+    return sqrt(max(a.Rt - a.Rg, 0.0) * (a.Rt + a.Rg));
+}
+
 // Cosine of the horizon direction as seen from radius r. Everything below this looks at ground rather than
 // sky, and the sky's gradient is steepest right at it, which is why the LUT mappings bias resolution here.
-//
-// Written as (r - Rg)(r + Rg) rather than the textbook 1 - Rg^2/r^2 on purpose. At f32, Rg^2 is far past the
-// 24-bit mantissa, so near the ground that form subtracts two nearly equal rounded numbers and the sqrt then
-// amplifies the error: it returns about -1e-4 instead of 0 at r = Rg, a tenth of a degree of phantom horizon
-// dip exactly where the sky's gradient is steepest. Factoring keeps the small quantity (the altitude) exact.
 fn dkHorizonMu(a: DkAtmosphere, r: f32) -> f32 {
-    let altitude = max(r - a.Rg, 0.0);
-    return -sqrt(altitude * (r + a.Rg)) / r;
+    return -dkRho(a, r) / r;
 }
 
 // Air and aerosols both thin out exponentially, with very different scale heights.

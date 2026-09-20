@@ -42,5 +42,9 @@ export {
     refractViewDirection,
 } from "./refraction.js";
 
+// Reading a LUT back to the CPU, for inspecting or exporting one.
+export type { TexturePixels } from "./readback.js";
+export { readTexture } from "./readback.js";
+
 // The raw WGSL, for inlining into a consumer's own pipelines instead of using the passes above.
 export * as wgsl from "./wgsl/index.js";

@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>@himmel/dunstkreis - WebGPU atmospheric scattering</title>
+<meta
+    name="description"
+    content="A physically based sky, computed on the GPU. A WebGPU atmospheric scattering library in TypeScript, ported from osgHimmel, that drops into an existing renderer as a single pass."
+/>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+    href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Roboto+Mono:wght@300;400;700&display=swap"
+    rel="stylesheet"
+/>
+<link rel="stylesheet" href="index.css" />
+</head>
+<body>
+
+<div class="sticky-sky">
+<div id="sky">
+    <canvas id="canvas"></canvas>
+    <div class="title-row over-sky">
+        <h1>@himmel/<strong>dunstkreis</strong></h1>
+        <a href="https://github.com/cgcostume/himmel-dunstkreis" target="_blank" rel="noopener">GitHub ↗</a>
+    </div>
+    <p class="sky-status footnote"><span id="status">starting WebGPU…</span></p>
+</div>
+</div>
+
+<div class="page">
+
+<p class="lead">
+    A physically based sky, computed on the GPU. Sunlight scattered by air, aerosols and ozone, for any time,
+    any place on Earth and any observer altitude within the atmosphere. A WebGPU library in TypeScript, ported
+    from <a href="https://github.com/cgcostume/osghimmel" target="_blank" rel="noopener">osgHimmel</a>, built to
+    drop into a renderer you already have rather than to be one.
+</p>
+<p class="note">
+    The sky above is rendered live in your browser by the library itself: drag to look around, and every
+    control below takes effect immediately. It is not an image or a gradient, but the result of integrating
+    scattering through an atmosphere, which is why moving the Sun below the horizon gives you a real sunset and
+    a real blue hour rather than a fade to black. The lookup tables that make it fast are shown further down
+    and can be downloaded as PNGs.
+</p>
+
+<h2>Time and place</h2>
+<p class="note">
+    The Sun's position is computed by
+    <a href="https://github.com/cgcostume/himmel-sternzeit" target="_blank" rel="noopener">@himmel/sternzeit</a>,
+    a separate library, and handed to this one as a plain direction vector. The two share no code and neither
+    depends on the other: whoever embeds this can compute that vector however they like.
+</p>
+
+<div class="input-grid">
+    <label for="jd">Julian Day</label>
+    <input id="jd" type="number" step="0.00001157" />
+    <select id="jdStep">
+        <option value="365.25">± year</option>
+        <option value="30.436875">± month</option>
+        <option value="7">± week</option>
+        <option value="1">± day</option>
+        <option value="0.0416666666667" selected>± hour</option>
+        <option value="0.0006944444444">± minute</option>
+        <option value="0.0000115740741">± second</option>
+    </select>
+    <span class="input-grid-extra">
+        <button id="now" type="button">now</button>
+        <label><input id="live" type="checkbox" /> live</label>
+        <code id="calendar"></code>
+    </span>
+
+    <label for="latitude">Latitude</label>
+    <input id="latitude" class="latlong" type="number" step="1" value="52.39206070410163" />
+    <select id="latitudeStep">
+        <option value="1" selected>± degree</option>
+        <option value="0.0166666666667">± minute</option>
+        <option value="0.0002777777778">± second</option>
+    </select>
+    <span class="input-grid-extra"><span id="latitudeDms" class="note"></span></span>
+
+    <label for="longitude">Longitude</label>
+    <input id="longitude" class="latlong" type="number" step="1" value="13.0925764790797" />
+    <select id="longitudeStep">
+        <option value="1" selected>± degree</option>
+        <option value="0.0166666666667">± minute</option>
+        <option value="0.0002777777778">± second</option>
+    </select>
+    <span class="input-grid-extra"><span id="longitudeDms" class="note"></span></span>
+    <span class="input-grid-subrow">
+        <button id="geolocate" type="button">use browser location</button>
+        <span id="location" class="note"></span>
+        <span id="sunPosition" class="note"></span>
+    </span>
+</div>
+
+<div class="controls">
+<div>
+    <h2>Observer</h2>
+    <div class="slider-grid">
+        <label for="height">height</label>
+        <input id="height" type="range" min="0" max="20000" step="10" value="0" />
+        <output id="heightOut"></output>
+
+        <label for="exposure">exposure</label>
+        <input id="exposure" type="range" min="1" max="60" step="0.5" value="12" />
+        <output id="exposureOut"></output>
+
+        <label for="blueHour">blue hour</label>
+        <input id="blueHour" type="range" min="0" max="1.5" step="0.01" value="0.5" />
+        <output id="blueHourOut"></output>
+
+        <label for="refraction">refraction</label>
+        <span><input id="refraction" type="checkbox" checked /> warp view rays</span>
+        <output></output>
+    </div>
+    <p class="note footnote">
+        Height is above sea level, capped at the top of the atmosphere: this library assumes an observer
+        inside it, so views from space are out of scope. Refraction is applied per view ray rather than as a
+        single correction to the Sun's direction, which is what bends the low Sun into an ellipse and keeps it
+        visible after it has geometrically set. It is a compile-time switch, so turning it off leaves no
+        refraction code in the pipeline at all.
+    </p>
+</div>
+
+<div>
+    <h2>Atmosphere</h2>
+    <div class="slider-grid">
+        <label for="rayleigh">Rayleigh scale height</label>
+        <input id="rayleigh" type="range" min="2" max="16" step="0.1" value="8" />
+        <output id="rayleighOut"></output>
+
+        <label for="mieHeight">Mie scale height</label>
+        <input id="mieHeight" type="range" min="0.2" max="8" step="0.1" value="1.2" />
+        <output id="mieHeightOut"></output>
+
+        <label for="mieAmount">Mie amount (haze)</label>
+        <input id="mieAmount" type="range" min="0.2" max="12" step="0.1" value="3" />
+        <output id="mieAmountOut"></output>
+
+        <label for="mieG">Mie g (forward bias)</label>
+        <input id="mieG" type="range" min="0" max="0.95" step="0.01" value="0.8" />
+        <output id="mieGOut"></output>
+
+        <label for="ozone">ozone</label>
+        <input id="ozone" type="range" min="0" max="3" step="0.05" value="1" />
+        <output id="ozoneOut"></output>
+
+        <label for="preset">preset</label>
+        <span>
+            <button id="presetDefault" type="button">Earth</button>
+            <button id="presetOsgHimmel" type="button">osgHimmel</button>
+        </span>
+        <output></output>
+    </div>
+    <p class="note footnote">
+        Changing any of these re-runs the precompute, which is why the fast variant is worth having: the
+        tables below are rebuilt in a millisecond or so. The osgHimmel preset restores the original's values, a
+        much thicker and less forward-scattering aerosol layer and no ozone at all.
+    </p>
+</div>
+</div>
+
+<h2>Precomputed tables</h2>
+<p class="note">
+    These are what the library actually produces. All three are computed by WebGPU compute shaders writing
+    into storage textures, and the sky above is little more than one lookup into the third per pixel. They are
+    shown tone mapped so the values are visible; the real ones are <code>rgba16float</code>.
+</p>
+
+<div class="luts">
+    <div class="lut">
+        <h3>transmittance</h3>
+        <canvas id="lutTransmittance" class="lut-canvas"></canvas>
+        <p class="footnote">
+            How much light survives the trip from a point in the atmosphere to space. Horizontal axis is the
+            view angle, from straight up on the left to along the horizon on the right; vertical is altitude.
+            Red survives the long grazing paths where blue has been scattered away entirely, which is the
+            whole reason sunsets are red. <button id="dlTransmittance" type="button" data-filename="transmittance.png">download PNG</button>
+        </p>
+    </div>
+    <div class="lut">
+        <h3>multiple scattering</h3>
+        <canvas id="lutMultiScattering" class="lut-canvas"></canvas>
+        <p class="footnote">
+            Light that bounced more than once before reaching the eye, every order summed at once. Horizontal
+            axis is the Sun's elevation, vertical is altitude. This is what keeps twilight blue instead of
+            grey, and what a single-scattering model leaves out.
+            <button id="dlMultiScattering" type="button" data-filename="multiscattering.png">download PNG</button>
+        </p>
+    </div>
+    <div class="lut">
+        <h3>sky view</h3>
+        <canvas id="lutSkyView" class="lut-canvas"></canvas>
+        <p class="footnote">
+            The sky itself, as a table: every view direction for the current Sun and observer. Rebuilt each
+            time anything moves, which is what makes the render pass a single texture fetch. The horizon sits
+            halfway up, with most of the resolution spent around it.
+            <button id="dlSkyView" type="button" data-filename="skyview.png">download PNG</button>
+        </p>
+    </div>
+</div>
+
+<footer class="family">
+    <p class="footnote">
+        Part of <strong>himmel</strong>, a family of small, independent, composable libraries for rendering the
+        sky, each usable on its own:
+    </p>
+    <ul class="footnote">
+        <li><a href="https://github.com/cgcostume/himmel-sternzeit" target="_blank" rel="noopener">sternzeit</a>,
+            astronomical position math</li>
+        <li><strong>dunstkreis</strong>, WebGPU atmospheric scattering (this one)</li>
+        <li>gewoelk, clouds <span class="planned">planned</span></li>
+        <li>sternenzelt, star rendering <span class="planned">planned</span></li>
+        <li>nachtgestirn, moon rendering <span class="planned">planned</span></li>
+    </ul>
+    <p class="footnote">
+        MIT licensed, by <a href="https://daniellimberger.de" target="_blank" rel="noopener">Daniel Limberger</a>.
+        Ported from <a href="https://github.com/cgcostume/osghimmel" target="_blank" rel="noopener">osgHimmel</a>,
+        originally his master's thesis at the Hasso Plattner Institute. The scattering model follows
+        <a href="https://sebh.github.io/publications/egsr2020.pdf" target="_blank" rel="noopener">Hillaire 2020</a>
+        and <a href="https://inria.hal.science/inria-00288758" target="_blank" rel="noopener">Bruneton and Neyret 2008</a>.
+    </p>
+</footer>
+
+</div>
+
+<!-- Bundled from index.js by `pnpm build:page`, with @himmel/sternzeit and this package inlined,
+     so the page is three files and needs no node_modules. -->
+<script type="module" src="bundle.js"></script>
+</body>
+</html>

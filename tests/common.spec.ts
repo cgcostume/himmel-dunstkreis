@@ -83,7 +83,9 @@ test("the uniform packing matches the DkAtmosphere struct field for field", () =
             const actual = Array.from(data.slice(offset, offset + 3));
             // Float32Array, so the f64 model values land rounded. Math.fround is that exact rounding, which
             // makes this a strict equality rather than a tolerance that could hide a genuine mismatch.
-            (expected[name] as number[]).forEach((v, c) => expect(actual[c], `${name}.${c}`).toBe(Math.fround(v)));
+            (expected[name] as number[]).forEach((v, c) => {
+                expect(actual[c], `${name}.${c}`).toBe(Math.fround(v));
+            });
             offset += 3;
         } else {
             expect(data[offset], name).toBe(Math.fround(expected[name] as number));

@@ -41,6 +41,11 @@ export interface SkyParams {
  * This package never creates a device, a canvas, a context, a render pass or a swap chain.
  */
 export interface SkyPass {
+    /**
+     * The table the render pass reads, rebuilt by `update()`. Exposed so it can be inspected or exported;
+     * nothing in a normal render path needs it.
+     */
+    readonly skyViewTexture: GPUTexture;
     update(params: Partial<SkyParams>): void;
     encode(pass: GPURenderPassEncoder): void;
     destroy(): void;

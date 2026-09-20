@@ -6,7 +6,7 @@ import { dts } from "rolldown-plugin-dts";
  * no escaping, diffable) while `dist` reads nothing from disk and works in a browser. `src/wgsl.d.ts` gives
  * tsc the matching declaration.
  */
-const wgsl = (): Plugin => ({
+export const wgsl = (): Plugin => ({
     name: "wgsl",
     transform: {
         filter: { id: /\.wgsl$/ },
